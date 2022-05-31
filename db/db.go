@@ -23,7 +23,8 @@ func (c *client) Connect() {
 		os.Exit(2)
 	}
 	c.Client = db
-	schemaFile, err := os.ReadFile("/home/jacobosoffer/projects/TC2005B/maker_api/sql/init.sql")
+	//schemaFile, err := os.ReadFile("/home/jacobosoffer/projects/TC2005B/maker_api/sql/init.sql")
+	schemaFile, err := os.ReadFile("sql/init.sql")
 	if err != nil {
 		fmt.Printf("❌ Error: Could not read schema file. %v\n", err.Error())
 		os.Exit(2)
