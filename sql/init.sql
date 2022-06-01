@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(50) NOT NULL,
     email VARCHAR(50) UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    joined TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    joined TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP
 );
 
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS collection (
     name VARCHAR(20) NOT NULL,
     description VARCHAR(200),
     uid INT NOT NULL,
-    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated TIMESTAMP,
     FOREIGN KEY (uid) REFERENCES users(id)
 );
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS collection_levels (
 -- );
 CREATE TABLE IF NOT EXISTS course_data (
     id SERIAL PRIMARY KEY,
-    level_id INT NOT NULL,
+    level_id INT UNIQUE NOT NULL,
     map_data jsonb NOT NULL,
     FOREIGN KEY (level_id) REFERENCES LEVELS(id)
 );
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS drafts (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
     level_id INT UNIQUE,
-    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated TIMESTAMP,
     theme INT DEFAULT 1,
     course_data jsonb,
@@ -159,7 +159,7 @@ EXECUTE PROCEDURE on_draft_update();
 
 -- == Stored Procedures ==
 -- Note that although Postgres does support
--- stored procedures, we're using functions insted,
+-- stored procedures, we're using functions instead,
 -- as we don't need any transactions
 
 -- 1. Query GIN Index
