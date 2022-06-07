@@ -178,3 +178,10 @@ func DeleteLevel(levelId int) error {
 	// TODO, maybe with a procedure
 	return errors.New("not implemented")
 }
+
+func TrendingLevels() ([]Level, error) {
+	query := "SELECT id, difficulty, name, description, uid, created, updated, theme FROM trending_levels;"
+	res := []Level{}
+	err := db.Client.Client.Select(&res, query)
+	return res, err
+}

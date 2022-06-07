@@ -48,6 +48,7 @@ func main() {
 		collections.POST("/level", routes.LinkLevel)
 		collections.DELETE("/level", routes.UnlinkLevel)
 		collections.GET("/levels/:id", routes.GetCollectionLevels)
+		collections.GET("/trending", routes.TrendingCollections)
 	}
 
 	drafts := r.Group("/drafts", middleware.RequireAuth())
@@ -70,12 +71,19 @@ func main() {
 		levels.PUT("/", routes.UpdateLevel)
 		levels.DELETE("/:id", routes.DeleteLevel)
 		levels.GET("/query", routes.QueryLevels)
+		levels.GET("/trending", routes.TrendingLevels)
+		levels.GET("/leaderboard/:id", routes.Leaderboard)
 	}
 
 	users := r.Group("/u", middleware.RequireAuth())
 	{
 		users.GET("/:id", routes.GetUser)
 		users.GET("/query", routes.QueryUsers)
+	}
+
+	transport := r.Group("/t", middleware.RequireAuth())
+	{
+		transport.POST("/", routes.PostEvent)
 	}
 
 	r.Run(fmt.Sprintf(":%v", os.Getenv("PORT")))

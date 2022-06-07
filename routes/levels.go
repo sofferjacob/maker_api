@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sofferjacob/maker_api/models"
+	"github.com/sofferjacob/maker_api/tracking"
 )
 
 func CreateLevel(c *gin.Context) {
@@ -22,6 +23,12 @@ func CreateLevel(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"status": "ok", "id": id})
+	event := tracking.Event{
+		EventType: "level_create",
+		Uid:       uid,
+		LevelId:   id,
+	}
+	event.Send()
 }
 
 type CreateFromDraftParams struct {
@@ -67,6 +74,13 @@ func CreateLevelFromDraft(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"status": "ok", "id": id})
+	event := tracking.Event{
+		EventType: "level_create",
+		Uid:       uid,
+		LevelId:   id,
+		DraftId:   params.DraftId,
+	}
+	event.Send()
 }
 
 func GetLevel(c *gin.Context) {
@@ -133,6 +147,12 @@ func UpdateLevel(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"status": "ok"})
+	event := tracking.Event{
+		EventType: "level_update",
+		Uid:       uid,
+		LevelId:   params.Id,
+	}
+	event.Send()
 }
 
 type UpdateFromDraftParams struct {
@@ -164,6 +184,12 @@ func UpdateLevelFromDraft(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"status": "ok"})
+	event := tracking.Event{
+		EventType: "level_update",
+		Uid:       uid,
+		LevelId:   params.LevelId,
+	}
+	event.Send()
 }
 
 func DeleteLevel(c *gin.Context) {
@@ -186,4 +212,28 @@ func QueryLevels(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"status": "ok", "results": res})
+}
+
+func TrendingLevels(c *gin.Context) {
+	levels, err := models.TrendingLevels()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"status": "ok", "levels": levels})
+}
+
+func Leaderboard(c *gin.Context) {
+	p := c.Param("id")
+	id, err := strconv.Atoi(p)
+	if id == 0 || err != nil || p == "" {
+		c.JSON(400, gin.H{"error": "invalid id"})
+		return
+	}
+	res, err := models.GetLeaderboard(id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"status": "ok", "result": res})
 }

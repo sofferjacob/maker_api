@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sofferjacob/maker_api/models"
+	"github.com/sofferjacob/maker_api/tracking"
 )
 
 type CreateDraftParams struct {
@@ -36,6 +37,13 @@ func CreateDraft(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"status": "ok", "id": id})
+	event := tracking.Event{
+		EventType: "draft_create",
+		Uid:       uid,
+		DraftId:   id,
+		LevelId:   params.LevelId,
+	}
+	event.Send()
 }
 
 type UpdateDraftParams struct {
@@ -66,6 +74,12 @@ func UpdateDraft(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"status": "ok"})
+	event := tracking.Event{
+		EventType: "draft_update",
+		Uid:       uid,
+		DraftId:   params.Id,
+	}
+	event.Send()
 }
 
 func GetDraft(c *gin.Context) {
@@ -143,6 +157,12 @@ func DeleteDraft(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"status": "ok"})
+	event := tracking.Event{
+		EventType: "draft_delete",
+		Uid:       uid,
+		DraftId:   id,
+	}
+	event.Send()
 }
 
 func GetUserDrafts(c *gin.Context) {

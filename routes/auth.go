@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/sofferjacob/maker_api/models"
+	"github.com/sofferjacob/maker_api/tracking"
 )
 
 type LoginParams struct {
@@ -29,6 +30,11 @@ func Login(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"status": "ok", "token": token, "user": u.ToUserData()})
+	event := tracking.Event{
+		EventType: "user_login",
+		Uid:       u.Id,
+	}
+	event.Send()
 }
 
 type RegisterParams struct {
@@ -52,6 +58,10 @@ func Register(c *gin.Context) {
 		c.JSON(500, gin.H{"error": "could not register user", "message": err.Error()})
 		return
 	}
+	event := tracking.Event{
+		EventType: "user_register",
+	}
+	event.Send()
 	c.JSON(200, gin.H{"status": "ok"})
 }
 

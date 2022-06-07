@@ -203,3 +203,12 @@ func GetCollectionLevels(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"status": "ok", "levels": levels})
 }
+
+func TrendingCollections(c *gin.Context) {
+	cls, err := models.TrendingCollections()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"status": "ok", "collections": cls})
+}

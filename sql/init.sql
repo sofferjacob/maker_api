@@ -66,13 +66,19 @@ CREATE TABLE IF NOT EXISTS collection_levels (
 --     FOREIGN KEY (level_id) REFERENCES levels(id),
 --     FOREIGN KEY (uid) REFERENCES users(id)
 -- );
--- CREATE TABLE IF NOT EXISTS events (
---     id SERIAL PRIMARY KEY,
---     event_type VARCHAR(50) NOT NULL,
---     level_id INT,
---     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     FOREIGN KEY (level_id) REFERENCES levels(id)
--- );
+CREATE TABLE IF NOT EXISTS events (
+    id SERIAL PRIMARY KEY,
+    event_type VARCHAR(50) NOT NULL,
+    level_id INT,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    uid INT,
+    time INT,
+    draft_id INT,
+    body jsonb,
+    state VARCHAR(50),
+    FOREIGN KEY (uid) REFERENCES users(id),
+    FOREIGN KEY (level_id) REFERENCES levels(id)
+);
 CREATE TABLE IF NOT EXISTS course_data (
     id SERIAL PRIMARY KEY,
     level_id INT UNIQUE NOT NULL,
@@ -178,4 +184,34 @@ BEGIN
     RETURN QUERY EXECUTE format('SELECT * FROM %s WHERE ts @@ %L ORDER BY ts_rank(ts, %L) DESC', pg_typeof(_rowtype), query_ts, query_ts);
     --RETURN QUERY EXECUTE format('SELECT * FROM %s WHERE ts @@ to_tsquery(%L, %L) ORDER BY ts_rank(ts, to_tsquery(%L, %L)) DESC', pg_typeof(_rowtype), 'spanish', REPLACE(q, ' ', ' <2> '), 'spanish', REPLACE(q, ' ', ' <2> '));
 END
-$$
+$$;
+
+-- == Views ==
+
+-- 1. Leaderboard
+CREATE OR REPLACE VIEW leaderboard AS
+    SELECT e.level_id, e.uid, e.time, e.timestamp, u.name FROM events e
+        INNER JOIN users u ON e.uid = u.id
+        WHERE e.event_type = 'game_finish'
+        ORDER BY e.time; 
+
+-- 2. Most popular levels
+CREATE OR REPLACE VIEW trending_levels AS
+    SELECT DISTINCT count(e.id) OVER (
+        PARTITION BY e.level_id
+    ) plays, l.* FROM events e
+    INNER JOIN levels l ON e.level_id = l.id
+    WHERE event_type = 'game_start'
+    --GROUP BY e.level_id
+    ORDER BY plays DESC;
+
+-- 3. Most popular collections
+CREATE OR REPLACE VIEW trending_collections AS
+    SELECT DISTINCT c.*,
+        sum(tl.plays) OVER (
+            PARTITION BY c.id
+        ) collection_plays FROM trending_levels tl
+        RIGHT JOIN collection_levels cl ON tl.id = cl.level_id
+        INNER JOIN collection c ON cl.collection_id = c.id
+        --GROUP BY c.id
+        ORDER BY collection_plays DESC;

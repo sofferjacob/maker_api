@@ -9,6 +9,7 @@ import (
 
 	"github.com/jmoiron/sqlx/types"
 	"github.com/sofferjacob/maker_api/db"
+	"github.com/sofferjacob/maker_api/tracking"
 )
 
 type Draft struct {
@@ -194,5 +195,14 @@ func GetLevelDraft(levelId, uid int) (Draft, error) {
 		return Draft{}, err
 	}
 	draft.Id = id
+	// We track here bc the route
+	// doesn't know if a draft
+	// was created
+	event := tracking.Event{
+		EventType: "draft_create",
+		Uid:       uid,
+		DraftId:   id,
+	}
+	event.Send()
 	return draft, nil
 }

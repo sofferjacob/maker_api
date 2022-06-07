@@ -100,3 +100,10 @@ func IsOwnCollection(collectionId, uid int) (bool, error) {
 	err := db.Client.Client.Get(&cuid, query, collectionId)
 	return cuid == uid, err
 }
+
+func TrendingCollections() ([]Collection, error) {
+	query := "SELECT id, name, description, uid, created, updated FROM trending_collections;"
+	res := []Collection{}
+	err := db.Client.Client.Select(&res, query)
+	return res, err
+}
