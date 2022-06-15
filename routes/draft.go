@@ -14,6 +14,8 @@ type CreateDraftParams struct {
 	LevelId    int                    `json:"levelId"`
 	CourseData map[string]interface{} `json:"courseData"`
 	Theme      int                    `json:"theme"`
+	Car        int                    `json:"car" binding:"required"`
+	Soundtrack int                    `json:"soundtrack" binding:"required"`
 }
 
 func CreateDraft(c *gin.Context) {
@@ -30,6 +32,8 @@ func CreateDraft(c *gin.Context) {
 		CourseData: params.CourseData,
 		Theme:      params.Theme,
 		Uid:        uid,
+		Soundtrack: params.Soundtrack,
+		Car:        params.Car,
 	}
 	id, err := draft.Create()
 	if err != nil {
@@ -51,6 +55,8 @@ type UpdateDraftParams struct {
 	CourseData map[string]interface{} `json:"courseData"`
 	Theme      int                    `json:"theme"`
 	Id         int                    `json:"id" binding:"required"`
+	Car        int                    `json:"car"`
+	Soundtrack int                    `json:"soundtrack"`
 }
 
 func UpdateDraft(c *gin.Context) {
@@ -67,6 +73,8 @@ func UpdateDraft(c *gin.Context) {
 		CourseData: params.CourseData,
 		Theme:      params.Theme,
 		Uid:        uid,
+		Car:        params.Car,
+		Soundtrack: params.Soundtrack,
 	}
 	err := draft.Update()
 	if err != nil {
