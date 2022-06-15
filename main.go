@@ -43,7 +43,7 @@ func main() {
 		collections.PUT("/", routes.UpdateCollection)
 		collections.GET("/u/:uid", routes.GetUserCollections)
 		collections.GET("/:id", routes.GetCollection)
-		collections.GET("/query", routes.QueryCollections)
+		collections.POST("/query", routes.QueryCollections)
 		collections.DELETE("/:id", routes.DeleteCollection)
 		collections.POST("/level", routes.LinkLevel)
 		collections.DELETE("/level", routes.UnlinkLevel)
@@ -70,15 +70,16 @@ func main() {
 		levels.PUT("/fromDraft", routes.UpdateLevelFromDraft)
 		levels.PUT("/", routes.UpdateLevel)
 		levels.DELETE("/:id", routes.DeleteLevel)
-		levels.GET("/query", routes.QueryLevels)
+		levels.POST("/query", routes.QueryLevels)
 		levels.GET("/trending", routes.TrendingLevels)
 		levels.GET("/leaderboard/:id", routes.Leaderboard)
+		levels.GET("/u/:uid", routes.GetUserLevels)
 	}
 
 	users := r.Group("/u", middleware.RequireAuth())
 	{
 		users.GET("/:id", routes.GetUser)
-		users.GET("/query", routes.QueryUsers)
+		users.POST("/query", routes.QueryUsers)
 	}
 
 	transport := r.Group("/t", middleware.RequireAuth())
@@ -86,5 +87,16 @@ func main() {
 		transport.POST("/", routes.PostEvent)
 	}
 
+	stats := r.Group("/stats", middleware.RequireAuth())
+	{
+		// Post must be used so the API is compatible with
+		// js fetch
+		stats.POST("/:id/gameStarts", routes.GetLevelStarts)
+		stats.POST("/:id/completes", routes.GetLevelCompletes)
+		stats.POST("/:id/avgTime", routes.GetAvgTime)
+		stats.POST("/:id/uniqueUsers", routes.GetUniqueUsers)
+	}
+
+	fmt.Printf("🚀 Server live @ :%v\n", os.Getenv("PORT"))
 	r.Run(fmt.Sprintf(":%v", os.Getenv("PORT")))
 }

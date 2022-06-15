@@ -237,3 +237,18 @@ func Leaderboard(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"status": "ok", "result": res})
 }
+
+func GetUserLevels(c *gin.Context) {
+	p := c.Param("uid")
+	uid, err := strconv.Atoi(p)
+	if err != nil || uid == 0 {
+		c.JSON(400, gin.H{"error": "invalid uid"})
+		return
+	}
+	levels, err := models.GetUserLevels(uid)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"status": "ok", "levels": levels})
+}

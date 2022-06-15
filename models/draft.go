@@ -148,7 +148,7 @@ func (d *Draft) Delete() error {
 		return errors.New("missing required param id")
 	}
 	query := "DELETE FROM drafts WHERE id = $1;"
-	_, err := db.Client.Client.Exec(query)
+	_, err := db.Client.Client.Exec(query, d.Id)
 	return err
 }
 

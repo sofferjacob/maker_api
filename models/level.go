@@ -116,9 +116,22 @@ func (l *Level) GetInfo() error {
 	if l.Id == 0 {
 		return errors.New("missing required field Id")
 	}
+	d := DBLevel{}
 	query := "SELECT * FROM levels WHERE id = $1;"
-	err := db.Client.Client.Get(l, query, l.Id)
+	err := db.Client.Client.Get(&d, query, l.Id)
+	d.ToLevel(l)
 	return err
+}
+
+func GetUserLevels(uid int) ([]Level, error) {
+	query := "SELECT * FROM levels WHERE uid = $1;"
+	res := []DBLevel{}
+	err := db.Client.Client.Select(&res, query, uid)
+	levels := make([]Level, len(res))
+	for i, v := range res {
+		v.ToLevel(&levels[i])
+	}
+	return levels, err
 }
 
 func (l *Level) Update() error {

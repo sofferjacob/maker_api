@@ -8,6 +8,8 @@ type DynamicQuery struct {
 	where      string
 	argCount   int
 	ret        string
+	selectList string
+	group      string
 	insertList []string
 	argsList   []interface{}
 }
@@ -29,6 +31,30 @@ func Insert(table string) DynamicQuery {
 	d.insertList = []string{}
 	d.argsList = []interface{}{}
 	d.argCount = 0
+	return d
+}
+
+func SelectFrom(table string) DynamicQuery {
+	d := DynamicQuery{}
+	d.table = table
+	d.operation = "SELECT"
+	d.argsList = []interface{}{}
+	d.argCount = 0
+	d.selectList = ""
+	return d
+}
+
+func (d DynamicQuery) Select(col string) DynamicQuery {
+	if d.selectList == "" {
+		d.selectList = col
+	} else {
+		d.selectList += fmt.Sprintf(", %v", col)
+	}
+	return d
+}
+
+func (d DynamicQuery) GroupBy(col string) DynamicQuery {
+	d.group = col
 	return d
 }
 
@@ -86,6 +112,17 @@ func (d DynamicQuery) Query() (string, []interface{}) {
 			params += fmt.Sprintf("$%v", i+1)
 		}
 		return fmt.Sprintf("INSERT INTO %v (%v) VALUES (%v)%v;", d.table, valuesList, params, d.ret), d.argsList
+	}
+	if d.operation == "SELECT" {
+		q := fmt.Sprintf("SELECT %v FROM %v", d.selectList, d.table)
+		if d.where != "" {
+			q += fmt.Sprintf(" WHERE %v", d.where)
+		}
+		if d.group != "" {
+			q += fmt.Sprintf(" GROUP BY %v", d.group)
+		}
+		q += ";"
+		return q, d.argsList
 	}
 	return "", nil
 }
