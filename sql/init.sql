@@ -97,6 +97,10 @@ CREATE TABLE IF NOT EXISTS drafts (
     FOREIGN KEY (level_id) REFERENCES levels(id),
     FOREIGN KEY (uid) REFERENCES users(id)
 );
+
+ALTER TABLE drafts ADD COLUMN IF NOT EXISTS car INT, ADD COLUMN IF NOT EXISTS soundtrack INT;
+ALTER TABLE levels ADD COLUMN IF NOT EXISTS car INT, ADD COLUMN IF NOT EXISTS soundtrack INT;
+
 -- TRIGGERS
 -- 1. Delete drafts on level
 -- creation

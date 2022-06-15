@@ -20,6 +20,8 @@ type Draft struct {
 	Updated    sql.NullTime           `db:"updated" json:"updated"`
 	CourseData map[string]interface{} `db:"course_data" json:"courseData"`
 	Theme      int                    `db:"theme" json:"theme"`
+	Car        int                    `db:"car" json:"car" binding:"required"`
+	Soundtrack int                    `db:"soundtrack" json:"soundtrack" binding:"required"`
 	Uid        int                    `db:"uid" json:"uid"`
 }
 
@@ -31,6 +33,8 @@ type DbDraft struct {
 	Updated    sql.NullTime   `db:"updated" json:"updated"`
 	CourseData types.JSONText `db:"course_data" json:"courseData"`
 	Theme      int            `db:"theme" json:"theme"`
+	Car        int            `db:"car" json:"car" binding:"required"`
+	Soundtrack int            `db:"soundtrack" json:"soundtrack" binding:"required"`
 	Uid        int            `db:"uid" json:"uid"`
 }
 
@@ -45,6 +49,8 @@ func (db *DbDraft) LoadToDraft(d *Draft) {
 	d.CourseData = cd
 	d.Theme = db.Theme
 	d.Uid = db.Uid
+	d.Car = db.Car
+	d.Soundtrack = db.Soundtrack
 }
 
 func (d *Draft) CourseDataDb() (types.JSONText, error) {
@@ -52,10 +58,11 @@ func (d *Draft) CourseDataDb() (types.JSONText, error) {
 }
 
 func (d *Draft) Create() (int, error) {
-	if d.Name == "" || d.Uid == 0 {
-		return -1, errors.New("missing required field name, uid")
+	if d.Name == "" || d.Uid == 0 || d.Car == 0 || d.Soundtrack == 0 {
+		return -1, errors.New("missing required field name, uid, car, soundtrack")
 	}
-	qb := db.Insert("drafts").Set("name", d.Name).Set("uid", d.Uid)
+	qb := db.Insert("drafts").Set("name", d.Name).Set("uid", d.Uid).
+		Set("car", d.Car).Set("soundtrack", d.Soundtrack)
 	if d.LevelId != 0 {
 		qb = qb.Set("level_id", d.LevelId)
 	}
@@ -69,6 +76,7 @@ func (d *Draft) Create() (int, error) {
 	if d.Theme != 0 {
 		qb = qb.Set("theme", d.Theme)
 	}
+
 	query, args := qb.Returning("id").Query()
 	var id int
 	err := db.Client.Client.Get(&id, query, args...)
@@ -85,6 +93,12 @@ func (d *Draft) Update() error {
 	}
 	if d.Theme != 0 {
 		qb = qb.Set("theme", d.Theme)
+	}
+	if d.Car != 0 {
+		qb = qb.Set("car", d.Car)
+	}
+	if d.Soundtrack != 0 {
+		qb = qb.Set("soundtrack", d.Soundtrack)
 	}
 	if d.CourseData != nil {
 		cdE, err := json.Marshal(d.CourseData)
@@ -186,6 +200,8 @@ func GetLevelDraft(levelId, uid int) (Draft, error) {
 		Theme:      level.Theme,
 		CourseData: level.CourseData,
 		Uid:        uid,
+		Car:        level.Car,
+		Soundtrack: level.Soundtrack,
 	}
 	if uid == level.Uid {
 		draft.LevelId = levelId

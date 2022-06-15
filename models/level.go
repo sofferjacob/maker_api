@@ -18,6 +18,8 @@ type Level struct {
 	Created     time.Time              `db:"created" json:"created"`
 	Updated     sql.NullTime           `db:"updated" json:"updated"`
 	Theme       int                    `db:"theme" json:"theme" binding:"required"`
+	Car         int                    `db:"car" json:"car" binding:"required"`
+	Soundtrack  int                    `db:"soundtrack" json:"soundtrack" binding:"required"`
 	CourseData  map[string]interface{} `db:"course_data" json:"courseData" binding:"required"`
 }
 
@@ -31,6 +33,8 @@ type DBLevel struct {
 	Updated     sql.NullTime    `db:"updated" json:"updated"`
 	Theme       int             `db:"theme" json:"theme" binding:"required"`
 	Ts          string          `db:"ts"`
+	Car         int             `db:"car" json:"car" binding:"required"`
+	Soundtrack  int             `db:"soundtrack" json:"soundtrack" binding:"required"`
 	CourseData  json.RawMessage `db:"course_data" json:"courseData" binding:"required"`
 }
 
@@ -45,16 +49,18 @@ func (db *DBLevel) ToLevel(l *Level) {
 	l.Created = db.Created
 	l.Updated = db.Updated
 	l.Theme = db.Theme
+	l.Car = db.Car
+	l.Soundtrack = db.Soundtrack
 	l.CourseData = cd
 }
 
 func (l *Level) Create() (int, error) {
-	if l.Difficulty == 0 || l.Name == "" || l.Description == "" || l.Uid == 0 || l.Theme == 0 || l.CourseData == nil {
+	if l.Difficulty == 0 || l.Name == "" || l.Description == "" || l.Uid == 0 || l.Theme == 0 || l.CourseData == nil || l.Car == 0 || l.Soundtrack == 0 {
 		return -1, errors.New("missing required struct fields")
 	}
-	query := "INSERT INTO levels (difficulty, name, description, uid, theme) VALUES ($1, $2, $3, $4, $5) RETURNING id;"
+	query := "INSERT INTO levels (difficulty, name, description, uid, theme, car, soundtrack) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
 	var id int
-	err := db.Client.Client.Get(&id, query, l.Difficulty, l.Name, l.Description, l.Uid, l.Theme)
+	err := db.Client.Client.Get(&id, query, l.Difficulty, l.Name, l.Description, l.Uid, l.Theme, l.Car, l.Soundtrack)
 	if err != nil {
 		return -1, err
 	}
@@ -79,9 +85,9 @@ func (l *Level) CreateFromDraft(d Draft) (int, error) {
 	if l.Difficulty == 0 || l.Description == "" || l.Uid == 0 || l.Theme == 0 || d.CourseData == nil {
 		return -1, errors.New("missing required struct fields")
 	}
-	query := "INSERT INTO levels (difficulty, name, description, uid, theme) VALUES ($1, $2, $3, $4, $5) RETURNING id;"
+	query := "INSERT INTO levels (difficulty, name, description, uid, theme, car, soundtrack) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
 	var id int
-	err := db.Client.Client.Get(&id, query, l.Difficulty, name, l.Description, l.Uid, l.Theme)
+	err := db.Client.Client.Get(&id, query, l.Difficulty, name, l.Description, l.Uid, l.Theme, d.Car, d.Soundtrack)
 	if err != nil {
 		return -1, err
 	}
@@ -155,7 +161,7 @@ func UpdateLevelFomDraft(levelId int, draft Draft) error {
 	if levelUid != draft.Uid || draft.CourseData == nil {
 		return errors.New("invalid draft")
 	}
-	level := Level{Id: levelId, Uid: levelUid, Name: draft.Name, CourseData: draft.CourseData}
+	level := Level{Id: levelId, Uid: levelUid, Name: draft.Name, CourseData: draft.CourseData, Car: draft.Car, Soundtrack: draft.Soundtrack}
 	return level.Update()
 }
 
